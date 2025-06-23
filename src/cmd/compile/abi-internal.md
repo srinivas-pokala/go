@@ -782,6 +782,110 @@ The floating point status and control register (FPSCR) is initialized
 to 0 by the kernel at startup of the Go program and not changed by
 the Go generated code.
 
+
+### s390x architecture
+
+The s390x architecture uses R2 – R9 for integer arguments & results.
+
+It uses F0 – F15 for floating-point arguments & results.
+
+Register R0 & R1 are scratch registers used for inter function calls in Go.
+
+Special-purpose registers used within Go generated code and Go
+assembly code are as follows:
+
+| Register | Call meaning | Return meaning | Body meaning |
+| --- | --- | --- | --- |
+| R0  | Scratch | Scratch | Scratch |
+| R1  | Scratch | Scratch | Scratch |
+| R10 | Temp/Scratch register | Internal Calculation/Scratch | Same |
+| R11 | Temp/Scratch register | Internal Calculation/Scratch | Same |
+| R12 | Current goroutine | Same | Same |
+| R13 | TLS/Fixed Reserve register | Same | Same |
+| R14 | Return address | Same | Same |
+| R15 | Stack pointer | Same | Same |
+*Rationale*: These register meanings are compatible with Go’s
+stack-based calling convention.
+
+The R12 register holds current goroutine information i.e. it points to
+G struct, which holds goroutine-local data.
+
+The R13 register is used as TLS or sometimes as frame making or for frame chaining.
+
+The R14 register holds the function return address at the function entry
+and is set to the correct return address before exiting the function.
+
+The R15 register holds stack pointer i.e. holds the top of the goroutine’s
+stack (not a traditional OS thread stack).
+
+Registers R2 - R9 are considered for argument passing between function calls.
+
+F0-F15 are used for storing floating point data. They are of float64 type registers.
+Eventhough a double-precision data is the default, it can hold single-precision data
+as well in the lower 32-bits.
+
+#### Stack layout
+
+The stack pointer, R15, grows down and is aligned to 8 bytes.
+It always points to the first byte of the lowest allocated stack frame.
+
+A function's stack frame, after the frame is created, is laid out as follows:
+
+
+         | Previous Stack frame              |
+         +-----------------------------------+ High addresses
+         | ... locals ...                    |
+         | ... parameter area passed to func |
+  SP+160 | ... outgoing arguments ...        |
+  SP+128 | 128 Floating point arg save area  |
+  SP+56  | 56  Other register Save area      | 
+  SP+16  | 16  Argument register Save area   | 
+  SP+8   |  8  Back Chain (Optional)         |
+  SP     |  0  Stack pointer/return PC       | ← R15 points to
+         +-----------------------------------+ ↓ lower addresses
+
+Each stack frame is aligned on an 8-byte boundary.
+
+The "return PC" is loaded to the R15 register, as part of the
+s390x `BR` operations.
+
+On entry to a non-leaf function, the stack frame size is subtracted from R15 to
+create its stack frame, and saves the value at the bottom of the frame.
+The stack pointer must be restored prior to return.
+
+A leaf function that does not require any stack space does not modify R15.
+
+If the function calls further functions, then the stack frame must at least
+contain the back chain slot, the register save area, and the parameter area (if needed). 
+The remaining space in the stack frame is called the “local-variable area.” 
+It immediately follows the parameter area and can have arbitrary size, provided that 
+it contains any padding necessary to make the entire frame a multiple of 8 bytes in length.
+
+This stack layout is used by both register-based (ABIInternal) and
+stack-based (ABI0) calling conventions.
+
+#### Register Prevention Rules
+
+Registers R6-R13, R15 and F0-F15 are “saved” registers also referred to as “nonvolatile”. 
+They “belong” to the calling function and must retain their values over the function call. 
+A called function modifying these registers must restore their original values before returning.
+
+Registers R0-R5 & R14 are "volatile” registers and they need not be preserved across function calls.
+The caller must take care of saving and restoring the value by itself, if it wants to preserve 
+such a register’s value across the function call.
+
+#### Flags
+
+A 2-bit condition code (CC) is generated in the Program Status Word (PSW) and it is central 
+to branching and conditional execution. It reflects the result of various instructions 
+and control the flow of the program.
+
+The CC holds one of these 4 values: 00, 01, 10, 11.
+
+CC is set by most of arithmetic, logical, compare, and test instructions.
+The value of the condition code determines whether a conditional branch is taken.
+
+
 ### riscv64 architecture
 
 The riscv64 architecture uses X10 – X17, X8, X9, X18 – X23 for integer arguments
