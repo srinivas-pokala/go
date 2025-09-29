@@ -33,8 +33,8 @@ TEXT ·makeFuncStub(SB),(NOSPLIT|WRAPPER),$304
 	BL	runtime·spillArgs(SB)
 	MOVD	R12, 32(R15) // save context reg R12 > args of moveMakeFuncArgPtrs < LOCAL_REGARGS
 #ifdef GOEXPERIMENT_regabiargs
-	MOVD	R12, R3
-	MOVD	R10, R4
+	MOVD	R12, R2
+	MOVD	R10, R3
 #else
 	MOVD	R12, 8(R15)
 	MOVD	R10, 16(R15)
@@ -64,8 +64,8 @@ TEXT ·methodValueCall(SB),(NOSPLIT|WRAPPER),$304
 	BL	runtime·spillArgs(SB)
 	MOVD	R12, 32(R15) // save context reg R12 > args of moveMakeFuncArgPtrs < LOCAL_REGARGS
 #ifdef GOEXPERIMENT_regabiargs
-	MOVD	R12, R3
-	MOVD	R10, R4
+	MOVD	R12, R2
+	MOVD	R10, R3
 #else
 	MOVD	R12, 8(R15)
 	MOVD	R10, 16(R15)
