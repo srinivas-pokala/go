@@ -977,8 +977,10 @@ TEXT runtime·panicBounds<ABIInternal>(SB),NOSPLIT,$144-0
 	// skip R14 aka LR @ 136
 	// skip R15 aka SP @ 144
 
-	MOVD	R14, 8(R15)	// PC immediately after call to panicBounds
+	/*MOVD	R14, 8(R15)	// PC immediately after call to panicBounds
 	ADD	$24, R15, R0	// pointer to save area
-	MOVD	R0, 16(R15)
+	MOVD	R0, 16(R15) */
+	MOVD	R14, R2
+	ADD	$24, R15, R3
 	CALL	runtime·panicBounds64<ABIInternal>(SB)
 	RET
