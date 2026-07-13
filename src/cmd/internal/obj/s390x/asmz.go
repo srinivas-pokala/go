@@ -72,6 +72,7 @@ var optab = []Optab{
 	{i: 0, as: obj.ATEXT, a1: C_ADDR, a3: C_LCON, a6: C_TEXTSIZE},
 	{i: 0, as: obj.APCDATA, a1: C_LCON, a6: C_LCON},
 	{i: 0, as: obj.AFUNCDATA, a1: C_SCON, a6: C_ADDR},
+	{i: 0, as: obj.APCALIGN, a1: C_SCON},
 	{i: 0, as: obj.ANOP},
 	{i: 0, as: obj.ANOP, a1: C_SAUTO},
 
@@ -464,6 +465,15 @@ var optab = []Optab{
 	{i: 129, as: AVSTRL, a1: C_VREG, a3: C_SCON, a6: C_SAUTO},
 }
 
+// pcAlignPadLength returns the number of bytes required to align pc to alignedValue,
+// reporting an error if alignedValue is not a power of two or is out of range.
+func pcAlignPadLength(ctxt *obj.Link, pc int64, alignedValue int64) int {
+	if !((alignedValue&(alignedValue-1) == 0) && 2 <= alignedValue && alignedValue <= 2048) {
+		ctxt.Diag("alignment value of an instruction must be a power of two and in the range [4, 2048], got %d\n", alignedValue)
+	}
+	return int(-pc & (alignedValue - 1))
+}
+
 var oprange [ALAST & obj.AMask][]Optab
 
 var xcmp [C_NCLASS][C_NCLASS]bool
@@ -510,6 +520,28 @@ func spanz(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 			c.asmout(p, &buffer)
 			if pc == int64(len(buffer)) {
 				switch p.As {
+				case obj.APCALIGN:
+					alignedValue := p.From.Offset
+					m := pcAlignPadLength(ctxt, pc, alignedValue)
+					// Update the current text symbol alignment value.
+					if int16(alignedValue) > cursym.Align {
+						cursym.Align = int16(alignedValue)
+					}
+					if m > 0 {
+						nop2 := []byte{0x07, 0x00}             // 2-byte NOP (BCR $0,R0)
+						nop4 := []byte{0xa7, 0x04, 0x00, 0x00} // 4-byte NOP
+
+						// Emit as many 4-byte NOPs as possible.
+						for ; m >= 4; m -= 4 {
+							buffer = append(buffer, nop4...)
+						}
+
+						// Emit a trailing 2-byte NOP if needed.
+						if m == 2 {
+							buffer = append(buffer, nop2...)
+						}
+					}
+
 				case obj.ANOP, obj.AFUNCDATA, obj.APCDATA, obj.ATEXT:
 					// ok
 				default:
@@ -521,8 +553,8 @@ func spanz(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 	}
 
 	c.cursym.Size = int64(len(buffer))
-	if c.cursym.Size%funcAlign != 0 {
-		c.cursym.Size += funcAlign - (c.cursym.Size % funcAlign)
+	if (c.cursym.Size %funcAlign) != 0 {
+		c.cursym.Size += (funcAlign - (c.cursym.Size % funcAlign))
 	}
 	c.cursym.Grow(c.cursym.Size)
 	copy(c.cursym.P, buffer)
