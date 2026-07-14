@@ -49,6 +49,7 @@ var Anames = []string{
 	"LOCGR",
 	"FLOGR",
 	"POPCNT",
+	"PFD",
 	"AND",
 	"ANDW",
 	"OR",

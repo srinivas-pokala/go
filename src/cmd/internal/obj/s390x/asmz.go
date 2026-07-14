@@ -463,6 +463,8 @@ var optab = []Optab{
 	// VSI store rightmost with length
 	{i: 129, as: AVSTRL, a1: C_VREG, a3: C_SCON, a6: C_SOREG},
 	{i: 129, as: AVSTRL, a1: C_VREG, a3: C_SCON, a6: C_SAUTO},
+	{i: 130, as: APFD, a1: C_SCON, a6: C_LOREG},
+	{i: 130, as: APFD, a1: C_SCON, a6: C_LAUTO},
 }
 
 // pcAlignPadLength returns the number of bytes required to align pc to alignedValue,
@@ -4530,6 +4532,16 @@ func (c *ctxtz) asmout(p *obj.Prog, asm *[]byte) {
 		d2 := uint32(c.vregoff(&p.To))
 		i3 := uint32(c.vregoff(p.GetFrom3()))
 		zVSI(op, uint32(v1), uint32(b2), d2, i3, asm)
+
+	case 130:
+		m := c.regoff(&p.From)
+		addr := &p.To
+		if addr.Reg == 0 {
+			addr.Reg= REGSP
+		}
+		d := c.regoff(addr)
+		zRXY(op_PFD, uint32(m), uint32(addr.Index), uint32(addr.Reg), uint32(d), asm)
+
 	}
 }
 

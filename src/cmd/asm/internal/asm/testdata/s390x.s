@@ -414,6 +414,7 @@ TEXT main·foo(SB),DUPOK|NOSPLIT,$16-0 // TEXT main.foo(SB), DUPOK|NOSPLIT, $16-
 	LTDBR	F3, F4                 // b3120043
 	TCEB	F5, $8                 // ed5000080010
 	TCDB	F15, $4095             // edf00fff0011
+	PFD	$1, (R2)             // e31020000036
 
 	UNDEF                          // 00000000
 	BRRK			       // 0001
