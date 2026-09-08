@@ -924,6 +924,18 @@ func ssaGenValue(s *ssagen.State, v *ssa.Value) {
 		// NOP (so the BNE has somewhere to land)
 		nop := s.Prog(obj.ANOP)
 		bne.To.SetTarget(nop)
+
+	case ssaop.OpS390XPFD:
+		// PFD M1, 0(Rarg0)
+		// Emit a prefetch-data hint. Non-faulting: unmapped addresses are silently ignored.
+		// M1 type code is in AuxInt: 1 = read prefetch (OpPrefetchCache)
+		//                            6 = streaming/NTA  (OpPrefetchCacheStreamed)
+		p := s.Prog(v.Op.Asm())      // (1)
+		p.From.Type = obj.TYPE_CONST // (2)
+		p.From.Offset = v.AuxInt     // (3)
+		p.To.Type = obj.TYPE_MEM     // (4)
+		p.To.Reg = v.Args[0].Reg()   // (5)
+
 	case ssaop.OpS390XLoweredAtomicExchange32, ssaop.OpS390XLoweredAtomicExchange64:
 		// Loop until the CS{,G} succeeds.
 		//     MOV{WZ,D} arg0, ret

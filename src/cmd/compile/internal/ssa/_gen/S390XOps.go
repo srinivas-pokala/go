@@ -201,6 +201,8 @@ func init() {
 		// input register. For now we just force the output register to
 		// R0.
 		exchange = regInfo{inputs: []regMask{ptrsp, gpsp.minus(r0), regMask{}}, outputs: []regMask{r0, regMask{}}}
+
+		prefreg = regInfo{inputs: []regMask{ptrspsb, regMask{}}}
 	)
 
 	var S390Xops = []opData{
@@ -519,6 +521,8 @@ func init() {
 		// and also clobbers R1 as the PLT stub does.
 		// Returns a pointer to a write barrier buffer in R9.
 		{name: "LoweredWB", argLength: 1, reg: regInfo{clobbers: callerSave.minus(gpg).union(buildReg("R14")).union(r1), outputs: []regMask{r9}}, clobberFlags: true, aux: "Int64"},
+
+		{name: "PFD", argLength: 2, aux: "Int64", reg: prefreg, asm: "PFD", hasSideEffects: true},
 
 		// LoweredPanicBoundsRR takes x and y, two values that caused a bounds check to fail.
 		// the RC and CR versions are used when one of the arguments is a constant. CC is used

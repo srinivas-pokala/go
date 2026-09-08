@@ -244,7 +244,7 @@ func initIntrinsics(cfg *intrinsicBuildConfig) {
 	// Make Prefetch intrinsics for supported platforms
 	// On the unsupported platforms stub function will be eliminated
 	addF("internal/runtime/sys", "Prefetch", makePrefetchFunc(ssaop.OpPrefetchCache),
-		sys.AMD64, sys.ARM64, sys.Loong64, sys.PPC64)
+		sys.AMD64, sys.ARM64, sys.Loong64, sys.PPC64, sys.S390X)
 	addF("internal/runtime/sys", "PrefetchStreamed", makePrefetchFunc(ssaop.OpPrefetchCacheStreamed),
 		sys.AMD64, sys.ARM64, sys.Loong64, sys.PPC64)
 

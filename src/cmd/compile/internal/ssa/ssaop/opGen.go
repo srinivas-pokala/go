@@ -6350,6 +6350,7 @@ const (
 	OpS390XLoweredRound32F
 	OpS390XLoweredRound64F
 	OpS390XLoweredWB
+	OpS390XPFD
 	OpS390XLoweredPanicBoundsRR
 	OpS390XLoweredPanicBoundsRC
 	OpS390XLoweredPanicBoundsCR
@@ -105201,6 +105202,18 @@ var OpcodeTable = [...]OpInfo{
 			Clobbers: RegMask{V1: 4294918146, V2: 0}, // R1 R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
 			Outputs: []OutputInfo{
 				{0, RegMask{V1: 512, V2: 0}}, // R9
+			},
+		},
+	},
+	{
+		Name:           "PFD",
+		AuxType:        AuxTypeInt64,
+		ArgLen:         2,
+		HasSideEffects: true,
+		asm:            s390x.APFD,
+		Reg: RegInfo{
+			Inputs: []InputInfo{
+				{0, RegMask{V1: 4295023614, V2: 0}}, // R1 R2 R3 R4 R5 R6 R7 R8 R9 R11 R12 R14 SP SB
 			},
 		},
 	},

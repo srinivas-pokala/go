@@ -490,6 +490,8 @@ func RewriteValue(v *ssa.Value) bool {
 		return rewriteValue_OpPopCount64(v)
 	case ssaop.OpPopCount8:
 		return rewriteValue_OpPopCount8(v)
+	case ssaop.OpPrefetchCache:
+		return rewriteValue_OpPrefetchCache(v)
 	case ssaop.OpRotateLeft16:
 		return rewriteValue_OpRotateLeft16(v)
 	case ssaop.OpRotateLeft32:
@@ -4047,6 +4049,20 @@ func rewriteValue_OpPopCount8(v *ssa.Value) bool {
 		v0 := b.NewValue0(v.Pos, ssaop.OpS390XMOVBZreg, typ.UInt64)
 		v0.AddArg(x)
 		v.AddArg(v0)
+		return true
+	}
+}
+func rewriteValue_OpPrefetchCache(v *ssa.Value) bool {
+	v_1 := v.Args[1]
+	v_0 := v.Args[0]
+	// match: (PrefetchCache addr mem)
+	// result: (PFD addr mem [1])
+	for {
+		addr := v_0
+		mem := v_1
+		v.Reset(ssaop.OpS390XPFD)
+		v.AuxInt = ssa.Int64ToAuxInt(1)
+		v.AddArg2(addr, mem)
 		return true
 	}
 }

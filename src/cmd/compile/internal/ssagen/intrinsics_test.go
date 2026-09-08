@@ -1320,6 +1320,7 @@ var wantIntrinsics = map[testIntrinsicKey]struct{}{
 	{"s390x", "sync/atomic", "SwapUint64"}:                             struct{}{},
 	{"s390x", "sync/atomic", "SwapUintptr"}:                            struct{}{},
 	{"s390x", "crypto/internal/constanttime", "boolToUint8"}:           struct{}{},
+	{"s390x", "internal/runtime/sys", "Prefetch"}:                      struct{}{},
 	{"wasm", "internal/runtime/sys", "GetCallerPC"}:                    struct{}{},
 	{"wasm", "internal/runtime/sys", "GetCallerSP"}:                    struct{}{},
 	{"wasm", "internal/runtime/sys", "GetClosurePtr"}:                  struct{}{},
